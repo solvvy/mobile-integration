@@ -46,7 +46,7 @@ The state is saved for the pre-defined time period of a Solvvy session, which is
 2. Go to the Storyboard and select the View Controller.
 3. Go to the Editor menu and select Embed in -> Navigation Controller.
 4. In your `ViewController.swift` file add the following:
-```
+```swift
 import UIKit
 import WebKit
 class ViewController: UIViewController {
