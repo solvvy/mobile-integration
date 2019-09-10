@@ -1,4 +1,4 @@
-![Solvvy logo](https://solvvy.com/wp-content/uploads/2019/06/solvvy_logo_180x50.svg =400x80)
+![Solvvy logo](assets/solvvy_logo_180x50.svg)
 
 
 # Launching Solvvy in a Webview: FAQ and Technical documentation
@@ -46,7 +46,7 @@ The state is saved for the pre-defined time period of a Solvvy session, which is
 2. Go to the Storyboard and select the View Controller.
 3. Go to the Editor menu and select Embed in -> Navigation Controller.
 4. In your `ViewController.swift` file add the following:
-```
+```swift
 import UIKit
 import WebKit
 class ViewController: UIViewController {
@@ -82,7 +82,7 @@ This is the basic code for opening your ticket submission page (which should aut
 When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your native app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
 
 5. Define a callback function to receive the user's original question:
-```
+```swift
 override func viewDidLoad() {
   super.viewDidLoad()
 
@@ -115,7 +115,7 @@ Make sure you use the exact name: `name: "supportOptionHandler"` because that is
 
 
 6. The final version of the `ViewController.swift` should look like this:
-```
+```swift
 import UIKit
 import WebKit
 
@@ -183,7 +183,7 @@ This allows the WebView to access internet within the app.
 ```
 
 3. In your `MainActivity.kt` file add the following:
-```
+```kotlin
 package com.example.myapplication
 
 import android.content.pm.ApplicationInfo
@@ -226,7 +226,7 @@ This is the basic code for opening your ticket submission page (which should aut
 When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your native app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
 
 4. Define a callback function to receive the user's original question:
-```
+```kotlin
 private inner class SupportOptionHandler {
   @JavascriptInterface
   fun handleSupportOption(supportOption: String, userQuestion: String) {
@@ -237,7 +237,7 @@ private inner class SupportOptionHandler {
 ```
 
 5. Make this callback available to the webview:
-```
+```kotlin
   override fun onCreate(savedInstanceState: Bundle?) {
     ...
     my_web_view.addJavascriptInterface(SupportOptionHandler(), HANDLER_NAME)
@@ -251,7 +251,7 @@ private inner class SupportOptionHandler {
 ```
 
 6. Inject the handler onto the webpage:
-```
+```kotlin
   override fun onCreate(savedInstanceState: Bundle?) {
     ...
     my_web_view.webViewClient = object : WebViewClient() {
@@ -281,7 +281,7 @@ Make sure you use the exact variable path: `window.solvvy.native.androidSupportO
 
 7. Clean up
 Be sure to clean up the handler as follows:
-```
+```kotlin
   override fun onDestroy() {
     my_web_view.removeJavascriptInterface(HANDLER_NAME)
     super.onDestroy()
@@ -289,7 +289,7 @@ Be sure to clean up the handler as follows:
 ```
 8. (Optional) Enable webview console logs for debugging
 If you want to be able to see the webview browser log messages in your Android Studio for debugging purposes, do this:
-```
+```kotlin
   override fun onCreate(savedInstanceState: Bundle?) {
     ...
     my_web_view.setWebChromeClient(object : WebChromeClient() {
@@ -304,7 +304,7 @@ If you want to be able to see the webview browser log messages in your Android S
 
 
 9. The final version of the `MainActivity.kt` should look like this:
-```
+```kotlin
 package com.example.myapplication
 
 import android.content.pm.ApplicationInfo
