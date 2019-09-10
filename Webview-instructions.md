@@ -1,4 +1,5 @@
-![Solvvy logo](https://solvvy.com/wp-content/uploads/2019/06/solvvy_logo_180x50.svg =400x80)
+![Solvvy logo]
+(https://solvvy.com/wp-content/uploads/2019/06/solvvy_logo_180x50.svg)
 
 
 # Launching Solvvy in a Webview: FAQ and Technical documentation
