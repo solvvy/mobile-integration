@@ -1,5 +1,4 @@
-![Solvvy logo]
-(/assets/solvvy_logo_180x50.svg)
+![Solvvy logo](assets/solvvy_logo_180x50.svg)
 
 
 # Launching Solvvy in a Webview: FAQ and Technical documentation
