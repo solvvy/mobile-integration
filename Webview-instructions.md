@@ -114,7 +114,7 @@ extension ViewController: WKScriptMessageHandler {
 Make sure you use the exact name: `name: "supportOptionHandler"` because that is what Solvvy will call when a support option is clicked by the user.
 
 
-6. The final version of the `ViewController.swift` should look like this:
+6. Now your `ViewController.swift` should look like this:
 ```swift
 import UIKit
 import WebKit
@@ -163,6 +163,25 @@ extension ViewController: WKScriptMessageHandler {
   }
 }
 ```
+
+#### Closing the webview when the user self-served
+
+When a user is satisfied with one of the answers returned, they can click "Yes" to indicate they got their answer.  On the next screen, if they click "Close" to end the Solvvy experience, the webview needs to pass control back to the native app.  This happens through another callback function which the Solvvy modal calls when that "Close" button is clicked.  Use the following code to handle that callback:
+```swift
+
+...
+  userContentController.add(self, name: "exitHandler")
+...
+
+extension ViewController: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        // do something like close the webview
+        print("EXIT HANDLER CALLED!")
+    }
+}
+```
+Please note that the userContentController method is called with only an empty string argument. 
+
 
 
 ### Android Implementation Guide
@@ -221,7 +240,8 @@ class MainActivity : AppCompatActivity() {
 ```
 This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.android.com/reference/android/webkit/WebView).
 
-#### Getting Data From the Webview
+
+#### Knowing when the user did not self-serve
 
 When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your native app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
 
@@ -303,7 +323,7 @@ If you want to be able to see the webview browser log messages in your Android S
 ```
 
 
-9. The final version of the `MainActivity.kt` should look like this:
+9. Now your `MainActivity.kt` should look like this:
 ```kotlin
 package com.example.myapplication
 
@@ -381,3 +401,39 @@ class MainActivity : AppCompatActivity() {
   }
 }
 ```
+
+#### Closing the webview when the user self-served
+
+When a user is satisfied with one of the answers returned, they can click "Yes" to indicate they got their answer.  On the next screen, if they click "Close" to end the Solvvy experience, the webview needs to pass control back to the native app.  This happens through another callback function which the Solvvy modal calls when that "Close" button is clicked.  Use the following code to handle that callback:
+```kotlin
+  
+  ...
+  my_web_view.addJavascriptInterface (ExitHandler(), EXIT_HANDLER_NAME)
+  ...
+  
+  private fun injectJavaScriptFunction() {
+      my_web_view.loadUrl("javascript: window.solvvy = window.solvvy || {};" +
+          "window.solvvy.native = window.solvvy.native || {};" +
+          "window.solvvy.native = { androidExitHandler: {} };" +
+          "window.solvvy.native.androidExitHandler.handle = function() { " +
+          EXIT_HANDLER_NAME + ".handleExit(); };")
+  }
+
+  private inner class ExitHandler {
+      @JavascriptInterface
+      fun handleExit() {
+          // do something like close the webview
+          println("EXIT HANDLER CALLED!")
+      }
+  }
+
+  override fun onDestroy() {
+      my_web_view.removeJavascriptInterface(EXIT_HANDLER_NAME)
+      super.onDestroy()
+  }
+
+   companion object {
+        private val EXIT_HANDLER_NAME = "exitHandler"
+   }
+```
+
