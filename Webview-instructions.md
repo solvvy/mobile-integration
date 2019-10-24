@@ -77,6 +77,25 @@ class ViewController: UIViewController {
 ```
 This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.apple.com/documentation/webkit).
 
+#### Passing data to the webview
+
+In certain situations, it is necessary to pass data to Solvvy running in the webview, e.g. to specify which language the app is using so Solvvy can be properly localized, or helpful metadata that needs to be included on the ticket if the user does not self-serve (like mobile platform, app version, user ID, etc.).  This can easily be accomplished by setting JS variables on the webpage when launching the webview.  Put all your variables in the `window.solvvyConfig` object.  If you want the data to be passed directly into tickets as certain custom fields, please use the custom field ID as the variable name, as below:
+
+```swift
+let userContentController = WKUserContentController()
+let scriptSource = "window.solvvyConfig = window.solvvyConfig || { " + 
+                     "language : 'de'," +
+                     "email : 'test@example.com'," +
+                     "custom_23793987 : 'test123', " + // Support ID
+                     "custom_23873898 : 'iPad'}; " + // Device Type (Name)
+                     "window.solvvy = window.solvvy || {};")
+let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+userContentController.addUserScript(script)
+let config = WKWebViewConfiguration()
+config.userContentController = userContentController
+let webView = WKWebView(frame: .zero, configuration: config)
+```
+
 #### Getting Data From the Webview
 
 When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your native app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
@@ -88,6 +107,7 @@ override func viewDidLoad() {
 
   let config = WKWebViewConfiguration()
   let userContentController = WKUserContentController()
+  ...
 
   userContentController.add(self, name: "supportOptionHandler")
 
@@ -126,7 +146,15 @@ class ViewController: UIViewController, WKNavigationDelegate {
 
     let config = WKWebViewConfiguration()
     let userContentController = WKUserContentController()
-
+    let scriptSource = "window.solvvyConfig = window.solvvyConfig || { " + 
+                         "language : 'de'," +
+                         "email : 'test@example.com'," +
+                         "custom_23793987 : 'test123', " + // Support ID
+                         "custom_23873898 : 'iPad'}; " + // Device Type (Name)
+                         "window.solvvy = window.solvvy || {};")
+    let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+    userContentController.addUserScript(script)
+    
     userContentController.add(self, name: "supportOptionHandler")
 
     config.userContentController = userContentController
@@ -240,8 +268,27 @@ class MainActivity : AppCompatActivity() {
 ```
 This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.android.com/reference/android/webkit/WebView).
 
+#### Passing data to the webview
 
-#### Knowing when the user did not self-serve
+In certain situations, it is necessary to pass data to Solvvy running in the webview, e.g. to specify which language the app is using so Solvvy can be properly localized, or helpful metadata that needs to be included on the ticket if the user does not self-serve (like mobile platform, app version, user ID, etc.).  This can easily be accomplished by setting JS variables on the webpage when launching the webview.  Put all your variables in the `window.solvvyConfig` object.  If you want the data to be passed directly into tickets as certain custom fields, please use the custom field ID as the variable name, as below:
+
+```kotlin
+my_web_view.webViewClient = object : WebViewClient() {
+    override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+        if (url == BASE_URL) {
+            my_web_view.loadUrl("javascript: window.solvvyConfig = window.solvvyConfig || { " +
+                         "language : 'de'," +
+                         "email : 'test@example.com'," +
+                         "custom_23793987 : 'test123', " + // Support ID
+                         "custom_23873898 : 'iPad'}; " + // Device Type (Name)
+                         "window.solvvy = window.solvvy || {};")
+        }
+    }
+    ...
+}
+```
+
+#### Getting data from the webview
 
 When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your native app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
 
@@ -364,6 +411,16 @@ class MainActivity : AppCompatActivity() {
         if (url == BASE_URL) {
           injectJavaScriptFunction()
         }
+      }
+      override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+          if (url == BASE_URL) {
+              my_web_view.loadUrl("javascript: window.solvvyConfig = window.solvvyConfig || { " +
+                           "language : 'de'," +
+                           "email : 'test@example.com'," +
+                           "custom_23793987 : 'test123', " + // Support ID
+                           "custom_23873898 : 'iPad'}; " + // Device Type (Name)
+                           "window.solvvy = window.solvvy || {};")
+          }
       }
     }
     my_web_view.loadUrl(BASE_URL)
