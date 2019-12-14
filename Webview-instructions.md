@@ -220,6 +220,11 @@ Please note that the userContentController method is called with only an empty s
 ```
 This allows the WebView to access internet within the app.
 
+If you allow your customers to submit attachments through your Solvvy ticket form using the "Add File" button, you also need to add the following to your AndroidManifest file:
+```
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+```
+
 2. In your `layout/activity_main.xml` file add the following:
 ```xml
 <WebView
@@ -267,6 +272,22 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.android.com/reference/android/webkit/WebView).
+
+#### Navigating back to Solvvy after opening a link to a KB article
+
+Users have the ability to see the original KB articles that contain the solutions Solvvy returns by clicking on the "Read Article" link underneath each solution.  On desktop, these links open in a new browser tab.  On mobile, if you follow this guide, those links will open in the same webview.  However, in this scenario, the user needs a way to navigate back to Solvvy.  Add this code to enable the device Back button to trigger the "Back" navigation function in the webview:
+```kotlin
+  override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    // Check if the key event was the Back button and if there's history
+    if (keyCode == KeyEvent.KEYCODE_BACK && my_web_view.canGoBack()) {
+        my_web_view.goBack()
+        return true
+    }
+    // If it wasn't the Back key or there's no web page history, bubble up to the default
+    // system behavior (probably exit the activity)
+    return super.onKeyDown(keyCode, event)
+  }
+```
 
 #### Passing data to the webview
 
