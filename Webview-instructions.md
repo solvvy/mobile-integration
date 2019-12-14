@@ -221,7 +221,7 @@ Please note that the userContentController method is called with only an empty s
 This allows the WebView to access internet within the app.
 
 If you allow your customers to submit attachments through your Solvvy ticket form using the "Add File" button, you also need to add the following to your AndroidManifest file:
-```
+```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
@@ -445,6 +445,17 @@ class MainActivity : AppCompatActivity() {
       }
     }
     my_web_view.loadUrl(BASE_URL)
+  }
+
+  override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    // Check if the key event was the Back button and if there's history
+    if (keyCode == KeyEvent.KEYCODE_BACK && my_web_view.canGoBack()) {
+        my_web_view.goBack()
+        return true
+    }
+    // If it wasn't the Back key or there's no web page history, bubble up to the default
+    // system behavior (probably exit the activity)
+    return super.onKeyDown(keyCode, event)
   }
 
   override fun onDestroy() {
