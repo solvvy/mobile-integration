@@ -15,9 +15,8 @@ Currently, the recommended method for integrating Solvvy into a native mobile ap
 A webview is a fully-functional mobile web browser screen that runs in your app.  The only difference between a webview and a normal mobile web browser screen is that the user cannot edit the URL.  If the webpage that is loaded in the webview is very responsive and mobile-friendly, the experience can appear to be fully native.
 
 ### Which URL should be opened in the webview?
-There are a couple of ways to do it:
-1. Create a blank page where Solvvy is installed and configured to auto-launch.
-2. Use an existing page where Solvvy is installed and configured to auto-launch.  Many of our clients have Solvvy installed and configured to auto-launch on their existing web ticket submission form.  Using this URL would be the easiest option because it requires no additional set up.
+
+We will create a blank page where Solvvy is installed and configured to auto-launch.  Your Solutions or Sales Engineer will provide you with the exact URL once the page is set up and ready for you to use in the webview.
 
 ### What about the hand-off to support when users cannot self-serve?  What is that experience like when Solvvy is running in a webview?
 It depends on what support options you have configured.
