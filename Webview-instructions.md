@@ -525,3 +525,127 @@ When a user is satisfied with one of the answers returned, they can click "Yes" 
    }
 ```
 
+#### Allowing attachments on tickets
+
+If you want to allow Email/Ticket as one of the options for contacting support, and you want to allow the users to add attachments from their local device to the ticket form, then you will need to add the following code:
+```kotlin
+import android.net.Uri
+import android.content.Intent
+import android.webkit.ValueCallback
+import android.webkit.WebView
+
+class MainActivity : AppCompatActivity() {
+    val REQUEST_CODE_LOLIPOP = 1
+    private val RESULT_CODE_ICE_CREAM = 2
+    private var mFilePathCallback: ValueCallback<Array<Uri>>? = null
+    private var mUploadMessage: ValueCallback<Uri>? = null
+
+    ...
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+    
+    ...
+    
+          my_web_view.setWebChromeClient(object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                android.util.Log.d("WebView", consoleMessage.message())
+                return true
+            }
+
+            //For Android 5.0 above
+            override fun onShowFileChooser(
+                webView: WebView?,
+                filePathCallback: ValueCallback<Array<Uri>>?,
+                fileChooserParams: FileChooserParams?
+            )
+                    : Boolean {
+                return this@MainActivity.onShowFileChooser(
+                    webView,
+                    filePathCallback,
+                    fileChooserParams
+                )
+            }
+
+            // For Android 3.0+
+            fun openFileChooser(uploadMsg: ValueCallback<Uri>) {
+                this.openFileChooser(uploadMsg, "*/*")
+            }
+
+            // For Android 3.0+
+            fun openFileChooser(uploadMsg: ValueCallback<Uri>, acceptType: String) {
+                this.openFileChooser(uploadMsg, acceptType, null)
+            }
+
+            //For Android 4.1
+            fun openFileChooser(
+                uploadMsg: ValueCallback<Uri>,
+                acceptType: String, capture: String?
+            ) {
+                this@MainActivity.openFileChooser(uploadMsg, acceptType, capture)
+            }
+        })
+        my_web_view.webViewClient = object : WebViewClient() {
+        
+        ...
+        
+      }
+      
+      ...
+      
+  }
+  
+  ...
+
+  fun onShowFileChooser(
+      webView: WebView?,
+      filePathCallback: ValueCallback<Array<Uri>>?,
+      fileChooserParams: WebChromeClient.FileChooserParams?
+  )
+          : Boolean {
+
+      mFilePathCallback?.onReceiveValue(null)
+      mFilePathCallback = filePathCallback
+      if (Build.VERSION.SDK_INT >= 21) {
+          val intent =fileChooserParams?.createIntent()
+          startActivityForResult(intent, REQUEST_CODE_LOLIPOP)
+      }
+
+      return true
+  }
+
+  fun openFileChooser(
+      uploadMsg: ValueCallback<Uri>,
+      acceptType: String, capture: String?
+  ) {
+      mUploadMessage = uploadMsg
+      val i = Intent(Intent.ACTION_GET_CONTENT)
+      i.addCategory(Intent.CATEGORY_OPENABLE)
+      i.type = acceptType
+      this@MainActivity.startActivityForResult(
+          Intent.createChooser(i, "File Browser"),
+          RESULT_CODE_ICE_CREAM
+      )
+  }
+
+  public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+      super.onActivityResult(requestCode, resultCode, data)
+      when (requestCode) {
+          RESULT_CODE_ICE_CREAM -> {
+              var uri: Uri? = null
+              if (data != null) {
+                  uri = data.data
+              }
+              mUploadMessage?.onReceiveValue(uri)
+              mUploadMessage = null
+          }
+          REQUEST_CODE_LOLIPOP -> {
+
+              if (Build.VERSION.SDK_INT >= 21) {
+                  val results = WebChromeClient.FileChooserParams.parseResult(resultCode, data)
+                  mFilePathCallback?.onReceiveValue(results)
+              }
+              mFilePathCallback = null
+          }
+      }
+  }
+```
