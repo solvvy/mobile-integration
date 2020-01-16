@@ -85,9 +85,11 @@ let userContentController = WKUserContentController()
 let scriptSource = "window.solvvyConfig = window.solvvyConfig || { " + 
                      "language : 'de'," +
                      "email : 'test@example.com'," +
-                     "custom_23793987 : 'test123', " + // Support ID
-                     "custom_23873898 : 'iPad'}; " + // Device Type (Name)
-                     "window.solvvy = window.solvvy || {};")
+                     "custom_23793987 : 'test123'," + // Support ID
+                     "custom_23873898 : 'iPad'," + // Device Type (Name)
+                     "darkMode : true," + // Dark mode (boolean) 
+                     "some_array : [ 'item1', 'item2' ]};" + // Some array of strings
+                     "window.solvvy = window.solvvy || {};"
 let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentStart, forMainFrameOnly: true)
 userContentController.addUserScript(script)
 let config = WKWebViewConfiguration()
@@ -148,9 +150,11 @@ class ViewController: UIViewController, WKNavigationDelegate {
     let scriptSource = "window.solvvyConfig = window.solvvyConfig || { " + 
                          "language : 'de'," +
                          "email : 'test@example.com'," +
-                         "custom_23793987 : 'test123', " + // Support ID
-                         "custom_23873898 : 'iPad'}; " + // Device Type (Name)
-                         "window.solvvy = window.solvvy || {};")
+                         "custom_23793987 : 'test123'," + // Support ID
+                         "custom_23873898 : 'iPad'," + // Device Type (Name)
+                         "darkMode : true," + // Dark mode (boolean) 
+                         "some_array : [ 'item1', 'item2' ]};" + // Some array of strings
+                         "window.solvvy = window.solvvy || {};"
     let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentStart, forMainFrameOnly: true)
     userContentController.addUserScript(script)
     
@@ -300,8 +304,10 @@ my_web_view.webViewClient = object : WebViewClient() {
             my_web_view.loadUrl("javascript: window.solvvyConfig = window.solvvyConfig || { " +
                          "language : 'de'," +
                          "email : 'test@example.com'," +
-                         "custom_23793987 : 'test123', " + // Support ID
-                         "custom_23873898 : 'iPad'}; " + // Device Type (Name)
+                         "custom_23793987 : 'test123'," + // Support ID
+                         "custom_23873898 : 'iPad'," + // Device Type (Name)
+                         "darkMode : true," + // Dark mode (boolean) 
+                         "some_array : [ 'item1', 'item2' ]};" + // Some array of strings
                          "window.solvvy = window.solvvy || {};")
         }
     }
@@ -436,11 +442,13 @@ class MainActivity : AppCompatActivity() {
       override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
           if (url == BASE_URL) {
               my_web_view.loadUrl("javascript: window.solvvyConfig = window.solvvyConfig || { " +
-                           "language : 'de'," +
-                           "email : 'test@example.com'," +
-                           "custom_23793987 : 'test123', " + // Support ID
-                           "custom_23873898 : 'iPad'}; " + // Device Type (Name)
-                           "window.solvvy = window.solvvy || {};")
+                            "language : 'de'," +
+                            "email : 'test@example.com'," +
+                            "custom_23793987 : 'test123'," + // Support ID
+                            "custom_23873898 : 'iPad'," + // Device Type (Name)
+                            "darkMode : true," + // Dark mode (boolean) 
+                            "some_array : [ 'item1', 'item2' ]};" + // Some array of strings
+                            "window.solvvy = window.solvvy || {};")
           }
       }
     }
