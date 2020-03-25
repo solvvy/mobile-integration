@@ -213,7 +213,71 @@ extension ViewController: WKScriptMessageHandler {
 ```
 Please note that the userContentController method is called with only an empty string argument. 
 
+#### Allowing attachments on tickets
 
+If you want to allow Email/Ticket as one of the options for contacting support, and you want to allow the users to add attachments from their local device to the ticket form, then you will need to add the following code:
+```swift
+import UIKit
+import WebKit
+
+class ViewController: UIViewController, WKNavigationDelegate {
+    
+    var lastTapPosition: CGPoint = CGPoint(x: 0, y: 0)
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        ...
+        
+        let webView = WKWebView(frame: .zero, configuration: config)
+        
+        // Intercept the user tap and store its location so we can use it to position our menu on screen.
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(webViewTapped(_:)))
+        tapGesture.delegate = self
+        webView.addGestureRecognizer(tapGesture)
+        
+        view.addSubview(webView)
+        
+        ...
+    }
+    
+    @objc
+    func webViewTapped(_ sender: UITapGestureRecognizer) {
+        // Store the last tap location.
+        self.lastTapPosition = sender.location(in: self.view)
+    }
+    
+    // One problem here is that we are not the ones declaring a variable for our UIPopoverPresentationController but
+    // it is coming from the web view itself, so we need to find a way to tell the controller that our View Controller
+    // will be its delegate for this situation. We can achieve that by overriding the present method from our
+    // View Controller to be able to set it as the delegate of the popover.
+    override open func present(_ viewControllerToPresent: UIViewController, animated flag: Bool, completion: (() -> Void)? = nil) {
+        if #available(iOS 13, *) {
+            viewControllerToPresent.popoverPresentationController?.delegate = self
+        }
+        super.present(viewControllerToPresent, animated: flag, completion: completion)
+    }
+}
+
+...
+
+extension ViewController: UIPopoverPresentationControllerDelegate {
+    func prepareForPopoverPresentation(_ popoverPresentationController: UIPopoverPresentationController) {
+        popoverPresentationController.sourceView = self.view // with this code the crash doesn’t happen anymore
+        popoverPresentationController.sourceRect = CGRect(origin: self.lastTapPosition, size: CGSize(width: 0, height: 0)) // Display on last tap position on webview
+    }
+}
+
+// No matter how much we tap the web view, our webViewTapped method will never be called. That’s because our web view
+// is already intercepting our taps to perform the necessary web view actions and, if we want to have our
+// View Controller to recognize them simultaneously, we have to make our View Controller conform to the
+// UIGestureRecognizerDelegate protocol
+extension ViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+}
+```
 
 ### Android Implementation Guide
 
