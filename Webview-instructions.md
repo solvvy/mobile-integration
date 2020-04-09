@@ -598,6 +598,26 @@ When a user is satisfied with one of the answers returned, they can click "Yes" 
    }
 ```
 
+#### Injecting multiple JavaScript functions
+
+In order to inject multiple JavaScript functions into the Webview, like handling support options and exit simlutaneously, you would set up your injectJavaScriptFunction() like this:
+```kotlin
+private fun injectJavaScriptFunction() {
+    my_web_view.loadUrl(
+        "javascript: " +
+            "window.solvvy = window.solvvy || {};" +
+            "window.solvvy.native = window.solvvy.native || {};" +
+            "window.solvvy.native = { androidSupportOptionHandler: {}, androidExitHandler: {} };" +
+            "window.solvvy.native.androidSupportOptionHandler.handle = " +
+            "function(option, question) { " +
+            HANDLER_NAME + ".handleSupportOption(option, question); };" +
+            "window.solvvy.native.androidExitHandler.handle = function() { " +
+            EXIT_HANDLER_NAME + ".handleExit(); };"
+    )
+}
+```
+
+
 #### Allowing attachments on tickets
 
 If you want to allow Email/Ticket as one of the options for contacting support, and you want to allow the users to add attachments from their local device to the ticket form, then you will need to add the following code:
