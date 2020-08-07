@@ -279,6 +279,39 @@ extension ViewController: UIGestureRecognizerDelegate {
 }
 ```
 
+#### Intercept URL requests from within a webview
+
+First, make something conform to `WKNavigationDelegate`. For example:
+
+```swift
+class ViewController: UIViewController, WKNavigationDelegate {
+```
+
+Second, make that object the navigation delegate of your web view. If you were using your view controller, you’d write this:
+
+```swift
+webView.navigationDelegate = self
+```
+
+Finally, implement the `decidePolicyFor` method with whatever logic should decide whether the page is loaded normally or execute deep links to app screens. For deep links make sure you call the `decisionHandler()` closure with `.cancel` so the load halts.
+
+As an example, this implementation will load all links inside the web view as long as they don’t go to the Apple homepage:
+
+```swift
+func webView(_ webView: WKWebView,
+             decidePolicyFor navigationAction: WKNavigationAction,
+             decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    if let host = navigationAction.request.url?.host, host == "www.apple.com" {
+        // do stuff or call deep links
+        decisionHandler(.cancel)
+        return
+    }
+
+    decisionHandler(.allow)
+}
+```
+
+
 ### Android Implementation Guide
 
 1. In Android Studio, go to your `manifests/AndroidManifest.xml` file and add the following:
@@ -742,3 +775,78 @@ class MainActivity : AppCompatActivity() {
       }
   }
 ```
+
+####  Intercept URL requests from within a webview   
+There are many options to intercept URL's within a Webview on Android, each one depends on the scope and the requirements that you have.  
+  
+#####  Option 1: Override URL loading  
+Give the host application a chance to take control when a URL is about to be loaded in the current WebView. If a WebViewClient is not provided, by default WebView will ask Activity Manager to choose the proper handler for the URL. If a WebViewClient is provided, returning `true` causes the current WebView to abort loading the URL, while returning `false` causes the WebView to continue loading the URL as usual.  
+  
+```kotlin  
+webView.webViewClient = object : WebViewClient() {  
+ override fun shouldOverrideUrlLoading( view: WebView, request: WebResourceRequest ): Boolean { return if(request.url.lastPathSegment == "error.html") { view.loadUrl("https//host.com/home.html") true } else { false } }}  
+```  
+For API<24 please use  
+```kotlin  
+public boolean shouldOverrideUrlLoading (WebView view,  
+ String url)
+```  
+This option has the next limitations:  
+  
+ - It does not catch POST request.
+ - It is not triggered on any resources loaded inside the page. i.e. images, scripts, etc.
+ - It is not triggered on any HTTP request made by JavaScript on the page.  
+ 
+For more informatioon about this method please refer to the [documentation](https://developer.android.com/reference/android/webkit/WebViewClient#shouldOverrideUrlLoading%28android.webkit.WebView,%20android.webkit.WebResourceRequest%29)  
+  
+#####  Option 2: Redirect resources loading  
+Notify the host application that the WebView will load the resource specified by the given url.  
+```kotlin  
+webView.webViewClient = object : WebViewClient() {  
+override fun onLoadResource(view: WebView, url: String) {  
+ view.stopLoading() view.loadUrl(newUrl) // this will trigger onLoadResource }}  
+```  
+`onLoadResource`  providers similar functionality to  `shouldOverrideUrlLoading`. But`onLoadResource`  will be called for any  **resources (images, scripts, etc)** loaded on the current page including  **the page itself**.  
+  
+**You must put an exit condition on the handling logic since this function will be triggered on `loadUrl(newUrl)`.** For example:  
+```kotlin  
+webView.webViewClient = object : WebViewClient() {  
+override fun onLoadResource(view: WebView, url: String) {  
+ // exit the redirect loop if landed on homepage if(url.endsWith("home.html")) return // redirect to home page if the page to load is error page if(url.endsWith("error.html")) { view.stopLoading() view.loadUrl("https//host.com/home.html") } }}  
+```  
+This option has the next limitations:  
+  
+ - It is not triggered on any HTTP request made by JavaScript on the page.  
+ For more information please refer to the [documentation](https://developer.android.com/reference/android/webkit/WebViewClient#onLoadResource%28android.webkit.WebView,%20java.lang.String%29).  
+
+##### Option 3: Handle all requests  
+Notify the host application of a resource request and allow the application to return the data. If the return value is  `null`, the WebView will continue to load the resource as usual. Otherwise, the return response and data will be used.  
+  
+This callback is invoked for a variety of URL schemes (e.g.,  `http(s):`,  `data:`,  `file:`, etc.), not only those schemes which send requests over the network. This is not called for  `javascript:`  URLs,  `blob:`  URLs, or for assets accessed via  `file:///android_asset/`  or  `file:///android_res/`  URLs.  
+  
+In the case of redirects, this is only called for the initial resource URL, not any subsequent redirect URLs.  
+  
+```kotlin  
+webView.webViewClient = object : WebViewClient() {  
+ override fun shouldInterceptRequest( view: WebView, request: WebResourceRequest ): WebResourceResponse? { return super.shouldInterceptRequest(view, request) }}  
+```  
+For example, we want to provide a local error page.  
+```kotlin  
+webView.webViewClient = object : WebViewClient() {  
+ override fun shouldInterceptRequest( view: WebView, request: WebResourceRequest ): WebResourceResponse? { return if (request.url.lastPathSegment == "error.html") { WebResourceResponse( "text/html", "utf-8", assets.open("error") ) } else { super.shouldInterceptRequest(view, request) } }}  
+```  
+  **This function is running in a background thread similar to how you execute an API call in the background thread. Any attempt to modify the content of the WebView inside this function will cause an exception. i.e. `loadUrl, evaluateJavascript, etc`.**  
+  
+For API<21 please use:  
+```kotlin  
+public WebResourceResponse shouldInterceptRequest (WebView view, String url)  
+```  
+  
+This option has the next limitations:  
+  
+ - There is no **payload** field on the `WebResourceRequest`.  For example, if you want to create a new user with a POST API request. You cannot get the POST payload from the `WebResourceRequest`. - This method is called on a thread other than the UI thread so clients should exercise caution when accessing private data or the view system.  
+ For more information please refer to the [documentation](https://developer.android.com/reference/android/webkit/WebViewClient#shouldInterceptRequest%28android.webkit.WebView,%20android.webkit.WebResourceRequest%29)  
+ ##### Other optionsThere are other no conventional options that can allow us to:  
+  
+ - Resolve payload for POST requests. - Ensure JS override available on every page. - Inject JS code into each HTML page.  
+These options are for more specifics requirements and are using JS or HTML overriding if you want to explore those options, please refer to this [post](https://medium.com/@madmuc/intercept-all-network-traffic-in-webkit-on-android-9c56c9262c85), but most of the scenarios are cover on the above options.
