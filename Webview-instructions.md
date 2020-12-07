@@ -1,22 +1,23 @@
 ![Solvvy logo](assets/solvvy_logo_180x50.svg)
 
 
-# Launching Solvvy in a Webview: FAQ and Technical documentation
+# Embedding Solvvy in Native Mobile Apps: FAQ and Technical Documentation
 
 ## FAQ
 
-### Why should Solvvy be launched in a webview?
-
-Currently, the recommended method for integrating Solvvy into a native mobile app is to launch a webview that opens a webpage where Solvvy is already installed and configured to automatically launch.  The main benefits to this approach are:
-- Updates to the Solvvy experience are immediately available to mobile users (whereas native SDKs take time to update)
-- The full range of Solvvy functionality is available on mobile (the native SDKs have certain limitations around ticket form configurations)
+### How can Solvvy be embedded in a native mobile app?
+Solvvy can be easily embeeded into a native mobile app using a webview.  Some 3rd party tools integrate into native mobile apps using native mobile SDKs (we previously used this approach), but now our approach to embedding Solvvy in native mobile apps is to use a webview.  The main benefits to this approach are:
+- Updates and new features for the Solvvy experience are immediately available (whereas updates to native SDKs often lag behind updates for the web experience).
+- Updates and new features for the Solvvy experience do not require a new release of your app.
+- The user experience is completely consistent between mobile and web.
 
 ### What exactly is a webview?
 A webview is a fully-functional mobile web browser screen that runs in your app.  The only difference between a webview and a normal mobile web browser screen is that the user cannot edit the URL.  If the webpage that is loaded in the webview is very responsive and mobile-friendly, the experience can appear to be fully native.
 
 ### Which URL should be opened in the webview?
+If you already send users to your web Help Center through a webview, and Solvvy is already installed in your web Help Center (or will be), then you don't need to do anything at all.  Anytime users access your web Help Center, whether it be through a desktop web browser, a mobile web browser, or a webview launched from within your mobile app, Solvvy will be there to provide a help them self-serve.  
 
-We will create a blank page where Solvvy is installed and configured to auto-launch.  Your Solutions or Sales Engineer will provide you with the exact URL once the page is set up and ready for you to use in the webview.
+If you want to just directly launch Solvvy at any point in your app (without invoking your web Help Center), you still use a webview.  In this case, we will provide (host) a blank page where Solvvy is installed and configured to auto-launch.  Your Solutions or Sales Engineer will provide you with the exact URL once the page is set up and ready for you to use in the webview.
 
 ### What about the hand-off to support when users cannot self-serve?  What is that experience like when Solvvy is running in a webview?
 It depends on what support options you have configured.
