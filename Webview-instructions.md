@@ -14,6 +14,10 @@ Solvvy can be easily embedded into a native mobile app using a webview.  Some th
 ### What exactly is a webview?
 A webview is a fully-functional mobile web browser screen that runs in your app.  The only difference between a webview and a normal mobile web browser screen is that the user cannot edit the URL.  If the webpage that is loaded in the webview is very responsive and mobile-friendly, the experience can appear to be fully native.
 
+### What level of engineering effort is required to embed Solvvy in a native mobile app?
+Very little.  This document contains all the code necessary to accomplish this, so it's mostly just copy and paste for your engineers.
+
+
 ### Which URL should be opened in the webview?
 If you already send users to your web Help Center through a webview, and Solvvy is already installed in your web Help Center (or will be), then you don't need to do anything at all.  Anytime users access your web Help Center, whether it be through a desktop web browser, a mobile web browser, or a webview launched from within your mobile app, Solvvy will be there to provide a help them self-serve.  
 
