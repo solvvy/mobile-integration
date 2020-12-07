@@ -41,8 +41,12 @@ This is actually one of the main benefits to the webview approach.  When a user 
 ### What happens when a user goes back to the app and then wants to come back to Solvvy?
 The state is saved for the pre-defined time period of a Solvvy session, which is currently 1 hour.   If they return to the Solvvy flow within that time period, then they see whatever screen they left off at.  After that time period, it will start the Solvvy flow over again.
 
-### What data does Solvvy collect, so we can know what to disclose in the Apple App Store?
+### Can Solvvy deep link to specific screens in our app as part of some resolution flow?
+Yes.  The best way to do this is to create Help Center content which contains the deep link they should use, along with appropriate context explaining when that link should be used.  Then Solvvy will surface that answer with the link when the user asks a relevant question.  You can also use a Workflow or Smart Suggestion to surface those links.  
 
+If you want to direct users to a web app link when they are using a web browser, and instead direct them to a mobile deep link when they are in your app, then use the instructions in the appropriate section "Intercept URL requests from within a webview" below, depending on your platform.  Then just add code to translate specific web URLs into the right deep links.
+
+### What data does Solvvy collect, so we can know what to disclose in the Apple App Store?
 Apple's web page about App Privacy Details (https://developer.apple.com/app-store/app-privacy-details/) explains that some data may not need to be disclosed if it meets the following conditions:
 
 #### Optional disclosure
