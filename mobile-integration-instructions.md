@@ -417,7 +417,6 @@ class MainActivity : AppCompatActivity() {
     }
     my_web_view.settings.javaScriptEnabled = true
     my_web_view.settings.domStorageEnabled = true
-    my_web_view.settings.databaseEnabled = true
     my_web_view.webViewClient = object : WebViewClient() {
     }
     my_web_view.loadUrl(BASE_URL)
@@ -577,7 +576,6 @@ class MainActivity : AppCompatActivity() {
     }
     my_web_view.settings.javaScriptEnabled = true
     my_web_view.settings.domStorageEnabled = true
-    my_web_view.settings.databaseEnabled = true
 
     my_web_view.addJavascriptInterface (SupportOptionHandler(), HANDLER_NAME)
     my_web_view.setWebChromeClient(object : WebChromeClient() {
