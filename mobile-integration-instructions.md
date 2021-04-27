@@ -1,5 +1,39 @@
 ![Solvvy logo](assets/solvvy_logo_180x50.svg)
 
+- [Embedding Solvvy in Native Mobile Apps: FAQ and Technical Documentation](#embedding-solvvy-in-native-mobile-apps--faq-and-technical-documentation)
+  * [FAQ](#faq)
+    + [How can Solvvy be embedded in a native mobile app?](#how-can-solvvy-be-embedded-in-a-native-mobile-app)
+    + [What exactly is a webview?](#what-exactly-is-a-webview)
+    + [What level of engineering effort is required to embed Solvvy in a native mobile app?](#what-level-of-engineering-effort-is-required-to-embed-solvvy-in-a-native-mobile-app)
+    + [Which URL should be opened in the webview?](#which-url-should-be-opened-in-the-webview)
+    + [What is the hand-off experience like when the user cannot self-serve?](#what-is-the-hand-off-experience-like-when-the-user-cannot-self-serve)
+    + [What happens when a user clicks on a KB article link on the Solvvy answers screen?](#what-happens-when-a-user-clicks-on-a-kb-article-link-on-the-solvvy-answers-screen)
+    + [What happens when a user goes back to the app and then wants to come back to Solvvy?](#what-happens-when-a-user-goes-back-to-the-app-and-then-wants-to-come-back-to-solvvy)
+    + [Can Solvvy deep link to specific screens in our app as part of some resolution flow?](#can-solvvy-deep-link-to-specific-screens-in-our-app-as-part-of-some-resolution-flow)
+    + [What data does Solvvy collect, so we can know what to disclose in the Apple App Store?](#what-data-does-solvvy-collect-so-we-can-know-what-to-disclose-in-the-apple-app-store)
+  * [Technical Documentation](#technical-documentation)
+    + [iOS Implementation Guide](#ios-implementation-guide)
+      - [Passing data to the webview](#passing-data-to-the-webview)
+      - [Getting Data From the Webview](#getting-data-from-the-webview)
+      - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served)
+      - [Allowing attachments on tickets](#allowing-attachments-on-tickets)
+      - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview)
+    + [Android Implementation Guide](#android-implementation-guide)
+      - [Navigating back to Solvvy after opening a link to a KB article](#navigating-back-to-solvvy-after-opening-a-link-to-a-kb-article)
+      - [Passing data to the webview](#passing-data-to-the-webview-1)
+      - [Getting data from the webview](#getting-data-from-the-webview)
+      - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served-1)
+      - [Injecting multiple JavaScript functions](#injecting-multiple-javascript-functions)
+      - [Allowing attachments on tickets](#allowing-attachments-on-tickets-1)
+      - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview-1)
+    + [React Native implementation Guide](#react-native-implementation-guide)
+      - [Passing data to the webview](#passing-data-to-the-webview-2)
+      - [Getting Data From the Webview](#getting-data-from-the-webview-1)
+      - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served-2)
+      - [Allowing attachments on tickets](#allowing-attachments-on-tickets-2)
+      - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview-2)
+      - [Clear cookies](#clear-cookies)
+
 
 # Embedding Solvvy in Native Mobile Apps: FAQ and Technical Documentation
 
@@ -23,7 +57,7 @@ If you already send users to your web Help Center through a webview, and Solvvy 
 
 If you want to directly launch Solvvy at any point in your app (without invoking your web Help Center), you still use a webview.  To make this possible, we will provide (host) a blank page where Solvvy is installed and configured to auto-launch.  Your Solutions or Sales Engineer will provide you with the exact URL once the page is set up and ready for you to use in the webview.  This approach feels very native because the Solvvy takes up the entire screen and loads very fast.
 
-### What about the hand-off to support when users cannot self-serve?  What is that experience like when Solvvy is running in a webview?
+### What is the hand-off experience like when the user cannot self-serve?
 It depends on what support options you have configured.
 
 #### Email / Ticket
@@ -904,3 +938,231 @@ This option has the next limitations:
   
  - Resolve payload for POST requests. - Ensure JS override available on every page. - Inject JS code into each HTML page.  
 These options are for more specifics requirements and are using JS or HTML overriding if you want to explore those options, please refer to this [post](https://medium.com/@madmuc/intercept-all-network-traffic-in-webkit-on-android-9c56c9262c85), but most of the scenarios are cover on the above options.
+
+
+
+### React Native implementation Guide
+
+1. install react-native-webview
+2. Create a new View to handle the webView
+4. Should be injected the javascript to handle all the events
+5. In the View add the following:
+```js
+import React from 'react';
+import {View} from 'react-native';
+import {WebView} from 'react-native-webview';
+const Support = () => {
+  return (
+    <View style={{ flex: 1 }}>
+      <WebView
+          source={{
+            uri:
+              'https://cdn.solvvy.com/deflect/customization/solvvy_webview_rn/support.html',
+          }}
+        />
+    </View>
+  );
+};
+
+export default Support;
+```
+
+This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.
+
+#### Passing data to the webview
+
+In certain situations, it is necessary to pass data to Solvvy running in the webview, e.g. to specify which language the app is using so Solvvy can be properly localized, or helpful metadata that needs to be included on the ticket if the user does not self-serve (like mobile platform, app version, user ID, etc.).  This can easily be accomplished by setting JS variables on the webpage when launching the webview.  Put all your variables in the `window.solvvyConfig` object.  If you want the data to be passed directly into tickets as certain custom fields, please use the custom field ID as the variable name, as below:
+
+```js
+const passingData = `
+  window.solvvy = {};
+  window.solvvyConfig = {
+    language: 'de',
+    email: 'jose.bogantes@salsamobi.com'
+    custom_23793987: 'test123', // Support ID
+    custom_23873898: 'iPad', // Device Type (Name)
+    darkMode: true, // Dark mode (boolean) 
+    some_array: [ 'item1', 'item2' ], // Some array of strings
+  };
+  true;
+`;
+```
+
+#### Getting Data From the Webview
+
+When a user is not able to self-serve, Solvvy presents a list of options (or channels) for contacting support (or automatically defaults to one if only one is configured).  Most of these support options can be handled, or executed, within the Solvvy flow, such as email ticket submission. However, for some support options (e.g. live chat), it may be preferable to execute the support contact flow directly from the native app (e.g. using a 3rd party native SDK).  To facilitate this, your native app needs to find out from the webview whether this native support flow needs to launch after the webview dismisses itself (i.e. if the user was not able to self-serve).  Your app also needs to get the question that the user typed in at the beginning of the Solvvy flow, so they don't have to re-type their issue.  Both of these things can be accomplished with the following code.
+
+6. Define a callback function to receive the user's original question:
+
+Make sure you use the exact name: name: "supportOptionHandler" because that is what Solvvy will call when a support option is clicked by the user.
+```js
+const passingData = `
+window.solvvy = {
+  native: {
+    supportOptionHandler: {
+      handle: function (data) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(data));
+      }
+    },
+  }
+};
+true;
+`;
+```
+
+the response will be an object like this 
+```js
+response = {
+    channel: 'chat',
+    question: 'question', // actual question
+    questions: ['question'] // array with all the question the user did
+}
+```
+
+#### Closing the webview when the user self-served
+
+When a user is satisfied with one of the answers returned, they can click "Yes" to indicate they got their answer.  On the next screen, if they click "Close" to end the Solvvy experience, the webview needs to pass control back to the native app.  This happens through another callback function which the Solvvy modal calls when that "Close" button is clicked.  Use the following code to handle that callback:
+
+```js
+const passingData = `
+window.solvvy = {
+  native: {
+    exitHandler: {
+      handle: function() {
+        window.ReactNativeWebView.postMessage("closeSupport");
+      }
+    },
+  }
+};
+true;
+`;
+```
+
+#### Allowing attachments on tickets
+
+##### iOS
+
+For iOS, all you need to do is specify the permissions in your `ios/[project]/Info.plist` file.
+By default, when you use the WebView component provided by React Native, iOS will respond to it by displaying a dialog that will allow you to select a file from your device.
+
+##### android
+
+Add permission in AndroidManifest.xml:
+
+```xml
+<manifest ...>
+
+  <!-- this is required only for Android 4.1-5.1 (api 16-22)  -->
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+  ......
+</manifest>
+```
+
+#### Intercept URL requests from within a webview
+
+The webView provides a handler to catch the URL changes, if you want to catch this you should use `onNavigationStateChange`
+
+```js
+const onNavigationStateChange = ({ navState }) => {
+// navState objects includes:
+
+/*
+  canGoBack
+  canGoForward
+  loading
+  navigationType
+  target
+  title
+  url
+*/
+};
+```
+
+#### Clear cookies
+
+The webView provides a different option to handle the cookies and the history inside the webview.
+
+In order to clean the cookies, there is an property is [`clearCache`](https://github.com/react-native-community/react-native-webview/blob/master/docs/Reference.md#clearcachebool), and for clear all the data the prop is [`clearHistory`](https://github.com/react-native-community/react-native-webview/blob/master/docs/Reference.md#clearhistory),
+but those methods works only in android devices
+
+To do a better handle for both platforms you can handle using a javascript code and injected it in the webView, or you can user a third party library like [cookies](https://github.com/react-native-community/cookies) this is for react native community
+
+7. Now your View should look like this:
+
+```js
+import React from 'react';
+import {View} from 'react-native';
+import {WebView} from 'react-native-webview';
+
+const Support = () => {
+  let webref = null;
+
+  const passingData = `
+    window.solvvy = {
+      native: {
+        supportOptionHandler: {
+          handle: function (data) {
+            window.ReactNativeWebView.postMessage(JSON.stringify(data));
+          }
+        },
+        exitHandler: {
+          handle: function() {
+            window.ReactNativeWebView.postMessage("closeSupport");
+          }
+        }
+      }
+    };
+    window.solvvyConfig = {
+      language: 'de',
+      email: 'jose.bogantes@salsamobi.com'
+      custom_23793987: 'test123', // Support ID
+      custom_23873898: 'iPad', // Device Type (Name)
+      darkMode: true, // Dark mode (boolean) 
+      some_array: [ 'item1', 'item2' ], // Some array of strings
+    };
+    true;
+  `;
+  
+  const onNavigationStateChange = ({ navState }) => {
+    // navState objects includes:
+
+    /*
+      canGoBack
+      canGoForward
+      loading
+      navigationType
+      target
+      title
+      url
+    */
+  };
+
+  setTimeout(() => {
+    webref.injectJavaScript(passingData);
+  }, 1);
+  return (
+    <View style={{ flex: 1 }}>
+      <WebView
+          ref={(r) => {
+            webref = r;
+          }}
+          source={{
+            uri:
+              'https://cdn.solvvy.com/deflect/customization/solvvy_webview_rn/support.html',
+          }}
+          injectedJavaScript={passingData}
+          onMessage={handleEvent}
+          incognito={true}
+          style={styles.webView}
+          onNavigationStateChange={onNavigationStateChange}
+        />
+    </View>
+  );
+};
+
+export default Support;
+
+```
+
+
