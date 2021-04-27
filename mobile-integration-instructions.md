@@ -267,7 +267,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
     webView.bottomAnchor.constraint(
       equalTo: layoutGuide.bottomAnchor).isActive = true
 
-    if let url = URL(string: "<YOUR WEB TICKET SUBMISSION URL WITH SOLVVY>") {
+    if let url = URL(string: "<YOUR WEBVIEW URL WITH SOLVVY>") {
         webView.load(URLRequest(url: url))
     }
   }
@@ -457,11 +457,11 @@ class MainActivity : AppCompatActivity() {
   }
 
   companion object {
-    private val BASE_URL = "<YOUR WEB TICKET SUBMISSION URL WITH SOLVVY>"
+    private val BASE_URL = "<YOUR WEBVIEW URL WITH SOLVVY>"
   }
 }
 ```
-This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.android.com/reference/android/webkit/WebView).
+This is the basic code for opening your webview URL (which should auto-launch Solvvy).  If Solvvy is not installed on your webview URL or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.  Note: to customize the behavior of the webview in various ways, please consult the [documentation](https://developer.android.com/reference/android/webkit/WebView).
 
 #### Navigating back to Solvvy after opening a link to a KB article
 
@@ -679,7 +679,7 @@ class MainActivity : AppCompatActivity() {
 
   companion object {
     private val HANDLER_NAME = "supportOptionHandler"
-    private val BASE_URL = "<YOUR WEB TICKET SUBMISSION URL WITH SOLVVY>"
+    private val BASE_URL = "<YOUR WEBVIEW URL WITH SOLVVY>"
   }
 }
 ```
@@ -943,9 +943,8 @@ These options are for more specifics requirements and are using JS or HTML overr
 
 ### React Native implementation Guide
 
-1. install react-native-webview
+1. Install react-native-webview
 2. Create a new View to handle the webView
-4. Should be injected the javascript to handle all the events
 5. In the View add the following:
 ```js
 import React from 'react';
@@ -967,7 +966,7 @@ const Support = () => {
 export default Support;
 ```
 
-This is the basic code for opening your ticket submission page (which should auto-launch Solvvy) in a webview.  If Solvvy is not installed on your web ticket submission page or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.
+This is the basic code for opening your webview URL (which should auto-launch Solvvy).  If Solvvy is not installed on your webview URL or does not auto-launch, contact your Solvvy Sales Engineer or Solutions Engineer.
 
 #### Passing data to the webview
 
@@ -978,7 +977,7 @@ const passingData = `
   window.solvvy = {};
   window.solvvyConfig = {
     language: 'de',
-    email: 'jose.bogantes@salsamobi.com'
+    email: 'example@me.com'
     custom_23793987: 'test123', // Support ID
     custom_23873898: 'iPad', // Device Type (Name)
     darkMode: true, // Dark mode (boolean) 
