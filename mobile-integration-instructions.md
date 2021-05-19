@@ -1,4 +1,4 @@
-![Solvvy logo](assets/solvvy_logo_180x50.svg)
+<img src="assets/solvvy_logo_180x50.svg" width="300" />
 
 - [Embedding Solvvy in Native Mobile Apps: FAQ and Technical Documentation](#embedding-solvvy-in-native-mobile-apps--faq-and-technical-documentation)
   * [FAQ](#faq)
