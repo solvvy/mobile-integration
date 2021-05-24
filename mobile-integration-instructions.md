@@ -10,6 +10,7 @@
     + [What happens when a user clicks on a KB article link on the Solvvy answers screen?](#what-happens-when-a-user-clicks-on-a-kb-article-link-on-the-solvvy-answers-screen)
     + [What happens when a user goes back to the app and then wants to come back to Solvvy?](#what-happens-when-a-user-goes-back-to-the-app-and-then-wants-to-come-back-to-solvvy)
     + [Can Solvvy deep link to specific screens in our app as part of some resolution flow?](#can-solvvy-deep-link-to-specific-screens-in-our-app-as-part-of-some-resolution-flow)
+    + [What browsers or devices does Solvvy support?](#what-browsers-or-devices-does-solvvy-support)
     + [What data does Solvvy collect, so we can know what to disclose in the Apple App Store?](#what-data-does-solvvy-collect-so-we-can-know-what-to-disclose-in-the-apple-app-store)
   * [Technical Documentation](#technical-documentation)
     + [iOS Implementation Guide](#ios-implementation-guide)
@@ -18,21 +19,24 @@
       - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served)
       - [Allowing attachments on tickets](#allowing-attachments-on-tickets)
       - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview)
+      - [Load error handling](#load-error-handling)
     + [Android Implementation Guide](#android-implementation-guide)
       - [Navigating back to Solvvy after opening a link to a KB article](#navigating-back-to-solvvy-after-opening-a-link-to-a-kb-article)
       - [Passing data to the webview](#passing-data-to-the-webview-1)
-      - [Getting data from the webview](#getting-data-from-the-webview)
+      - [Getting data from the webview](#getting-data-from-the-webview-1)
       - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served-1)
       - [Injecting multiple JavaScript functions](#injecting-multiple-javascript-functions)
       - [Allowing attachments on tickets](#allowing-attachments-on-tickets-1)
       - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview-1)
+      - [Load error handling](#load-error-handling-1)
     + [React Native implementation Guide](#react-native-implementation-guide)
       - [Passing data to the webview](#passing-data-to-the-webview-2)
-      - [Getting Data From the Webview](#getting-data-from-the-webview-1)
+      - [Getting Data From the Webview](#getting-data-from-the-webview-2)
       - [Closing the webview when the user self-served](#closing-the-webview-when-the-user-self-served-2)
       - [Allowing attachments on tickets](#allowing-attachments-on-tickets-2)
       - [Intercept URL requests from within a webview](#intercept-url-requests-from-within-a-webview-2)
       - [Clear cookies](#clear-cookies)
+      - [Load error handling](#load-error-handling-2)
 
 
 # Embedding Solvvy in Native Mobile Apps: FAQ and Technical Documentation
@@ -79,6 +83,21 @@ The state is saved for the pre-defined time period of a Solvvy session, which is
 Yes.  The best way to do this is to create Help Center content which contains the deep link they should use, along with appropriate context explaining when that link should be used.  Then Solvvy will surface that answer with the link when the user asks a relevant question.  You can also use a Workflow or Smart Suggestion to surface those links.  
 
 If you want to direct users to a web app link when they are using a web browser, and instead direct them to a mobile deep link when they are in your app, then use the instructions in the appropriate section "Intercept URL requests from within a webview" below, depending on your platform.  Then just add code to translate specific web URLs into the right deep links.
+
+### What browsers or devices does Solvvy support?
+In general, we aim to support browsers that are supported by their respective vendors. IE 11 is the only version supported by Microsoft. Android versions 8+ are supported.  Safari 10 is supported by Apple (we also support 9). Chrome does not list any version as supported, but it is aggressively updated on all platforms.
+
+#### Supported
+- Chrome on desktop, Android 6+, and iOS
+- Safari 9+ on desktop and iOS
+- Firefox
+- Microsoft Edge
+- Internet Explorer 11
+
+#### Not Supported
+- Safari 8 and below
+- Internet Explorer 10 or below
+- Any browser on Android versions below 6 (no longer supported by Google)
 
 ### What data does Solvvy collect, so we can know what to disclose in the Apple App Store?
 Apple's web page about App Privacy Details (https://developer.apple.com/app-store/app-privacy-details/) explains that some data may not need to be disclosed if it meets the following conditions:
@@ -400,7 +419,37 @@ func webView(_ webView: WKWebView,
     decisionHandler(.allow)
 }
 ```
+#### Load error handling
 
+Possible scenarios where you might want to handle load errors include:
+- Network issues
+- Incompatible browser or device*
+- Solvvy load failure
+
+Although these scenarios are rare, the following load error handler can be implemented to provide a cleaner experience for your users. The possible load errors are:
+- `"loading_timeout"` - Solvvy did not load within 10 seconds
+- `"loading_failed"` - Solvvy failed to load
+- `"incompatible_browser"` - Incompatible browser or device*
+
+\* See [What browsers or devices does Solvvy support?](#what-browsers-or-devices-does-solvvy-support)
+
+If this handler is not implemented, where possible, the Solvvy team will implement a generic fallback to redirect to your web contact form.
+```swift
+
+...
+  userContentController.add(self, name: "loadErrorHandler")
+...
+
+extension ViewController: WKScriptMessageHandler {
+  func userContentController(_ userContentController: WKUserContentController,
+    didReceive message: WKScriptMessage) {
+    if let messageBody = message.body as? [String: Any],
+      let error = messageBody["error"] as? String{
+      print("error: \(error)")
+    }
+  }
+}
+```
 
 ### Android Implementation Guide
 
@@ -939,7 +988,84 @@ This option has the next limitations:
  - Resolve payload for POST requests. - Ensure JS override available on every page. - Inject JS code into each HTML page.  
 These options are for more specifics requirements and are using JS or HTML overriding if you want to explore those options, please refer to this [post](https://medium.com/@madmuc/intercept-all-network-traffic-in-webkit-on-android-9c56c9262c85), but most of the scenarios are cover on the above options.
 
+#### Load error handling
 
+Possible scenarios where you might want to handle load errors include:
+- Network issues
+- Incompatible browser or device*
+- Solvvy load failure
+
+Although these scenarios are rare, the following load error handler can be implemented to provide a cleaner experience for your users. The possible load errors are:
+- `"loading_timeout"` - Solvvy did not load within 10 seconds
+- `"loading_failed"` - Solvvy failed to load
+- `"incompatible_browser"` - Incompatible browser or device*
+
+\* See [What browsers or devices does Solvvy support?](#what-browsers-or-devices-does-solvvy-support)
+
+If this handler is not implemented, where possible, the Solvvy team will implement a generic fallback to redirect to your web contact form.
+1. Define a callback function to receive the user's original question:
+```kotlin
+private inner class LoadErrorHandler {
+  @JavascriptInterface
+  fun handleLoadError(error: String) {
+    // do something with the error
+    println("error: $error")
+  }
+}
+```
+
+2. Make this callback available to the webview:
+```kotlin
+  override fun onCreate(savedInstanceState: Bundle?) {
+    ...
+    my_web_view.addJavascriptInterface(LoadErrorHandler(), HANDLER_NAME)
+    ...
+  }
+
+  companion object {
+    ...
+    private val HANDLER_NAME = "loadErrorHandler"
+  }
+```
+
+3. Inject the handler onto the webpage:
+```kotlin
+  override fun onCreate(savedInstanceState: Bundle?) {
+    ...
+    my_web_view.webViewClient = object : WebViewClient() {
+      override fun onPageFinished(view: WebView, url: String) {
+        if (url == BASE_URL) {
+          injectJavaScriptFunction()
+        }
+      }
+    }
+    ...
+  }
+
+  private fun injectJavaScriptFunction() {
+    my_web_view.loadUrl(
+      "javascript: " +
+        "window.solvvy = window.solvvy || {};" +
+        "window.solvvy.native = window.solvvy.native || {};" +
+        "window.solvvy.native = { androidLoadErrorHandler: {} };" +
+        "window.solvvy.native.androidLoadErrorHandler.handle = " +
+        "function(error) { " +
+        HANDLER_NAME + ".handleLoadError(error); };"
+    )
+  }
+```
+
+Make sure you use the exact variable path: `window.solvvy.native.androidLoadErrorHandler.handle` because that is what Solvvy will call when a load error occurs.
+
+4. Clean up
+
+Be sure to clean up the handler as follows:
+```kotlin
+  override fun onDestroy() {
+    my_web_view.removeJavascriptInterface(HANDLER_NAME)
+    super.onDestroy()
+  }
+```
 
 ### React Native implementation Guide
 
@@ -1164,4 +1290,43 @@ export default Support;
 
 ```
 
+#### Load error handling
 
+Possible scenarios where you might want to handle load errors include:
+- Network issues
+- Incompatible browser or device*
+- Solvvy load failure
+
+Although these scenarios are rare, the following load error handler can be implemented to provide a cleaner experience for your users. The possible load errors are:
+- `"loading_timeout"` - Solvvy did not load within 10 seconds
+- `"loading_failed"` - Solvvy failed to load
+- `"incompatible_browser"` - Incompatible browser or device*
+
+\* See [What browsers or devices does Solvvy support?](#what-browsers-or-devices-does-solvvy-support)
+
+If this handler is not implemented, where possible, the Solvvy team will implement a generic fallback to redirect to your web contact form.
+
+1. Define a callback function to be called when an error occurs:
+
+Make sure you use the exact name: "loadErrorHandler" because that is what Solvvy will call when a load error occurs.
+```js
+const passingData = `
+window.solvvy = {
+  native: {
+    loadErrorHandler: {
+      handle: function (data) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(data));
+      }
+    },
+  }
+};
+true;
+`;
+```
+
+The response will be an object like this
+```js
+response = {
+    error: 'loading_timeout' // one of the possible load errors defined above
+}
+```
