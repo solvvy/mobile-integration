@@ -177,7 +177,7 @@ class ViewController: UIViewController {
     webView.bottomAnchor.constraint(
       equalTo: layoutGuide.bottomAnchor).isActive = true
 
-    if let url = URL(string: "<YOUR WEB TICKET SUBMISSION URL WITH SOLVVY>") {
+    if let url = URL(string: "<YOUR WEBVIEW URL WITH SOLVVY>") {
       webView.load(URLRequest(url: url))
     }
   }
